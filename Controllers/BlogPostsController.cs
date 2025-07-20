@@ -2,6 +2,7 @@
 using BlogMvc.Models.Common;
 using BlogMvc.Models.ViewModels;
 using BlogMvc.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,7 @@ namespace BlogMvc.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-[Authorize]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class BlogPostController : BaseController
 {
     private readonly IBlogService _blogService;

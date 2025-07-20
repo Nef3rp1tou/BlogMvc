@@ -1,0 +1,145 @@
+﻿@model BlogMvc.Models.ViewModels.BlogPostViewModel
+@{
+    ViewData["Title"] = Model?.Title ?? "პოსტი ვერ მოიძებნა";
+}
+
+<div class="container my-5">
+    @if (Model != null)
+    {
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-controller="Home" asp-action="Index" class="text-decoration-none">
+                        <i class="bi bi-house me-1"></i>მთავარი
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">@Model.Title</li>
+            </ol>
+        </nav>
+
+        <!-- Article Header -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <article class="bg-white rounded shadow-sm border-0 overflow-hidden">
+                    <!-- Article Meta -->
+                    <div class="bg-light px-4 py-3 border-bottom">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center text-muted">
+                                    <i class="bi bi-person-circle me-2"></i>
+                                    <span class="me-3"><strong>@Model.Author</strong></span>
+                                    <i class="bi bi-calendar3 me-2"></i>
+                                    <span>@Model.PublishedDate.ToString("dd MMMM yyyy, HH:mm")</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-md-end mt-2 mt-md-0">
+                                @if (Model.CanEdit || Model.CanDelete)
+                                {
+                                    <div class="btn-group" role="group">
+                                        @if (Model.CanEdit)
+                                        {
+                                            <a asp-controller="Blog" asp-action="Edit" asp-route-id="@Model.Id"
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-pencil me-1"></i>რედაქტირება
+                                            </a>
+                                        }
+                                        @if (Model.CanDelete)
+                                        {
+                                            <a asp-controller="Blog" asp-action="Delete" asp-route-id="@Model.Id"
+                                               class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-trash me-1"></i>წაშლა
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Article Content -->
+                    <div class="p-4">
+                        <h1 class="display-5 fw-bold mb-4 text-primary">@Model.Title</h1>
+                        <div class="article-content">
+                            @Html.Raw(Html.Encode(Model.Content).Replace("\n", "<br />"))
+                        </div>
+                    </div>
+
+                    <!-- Article Footer -->
+                    <div class="bg-light px-4 py-3 border-top">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    გამოქვეყნდა @Model.PublishedDate.ToString("dd MMMM yyyy")-ში
+                                </small>
+                            </div>
+                            <div class="col-md-4 text-md-end mt-2 mt-md-0">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="window.history.back()">
+                                    <i class="bi bi-arrow-left me-1"></i>უკან დაბრუნება
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Navigation to other posts -->
+                <div class="mt-4">
+                    <div class="row">
+                        <div class="col text-center">
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                                <i class="bi bi-grid me-2"></i>ყველა პოსტის ნახვა
+                            </a>
+                            @if (User.Identity!.IsAuthenticated && (User.IsInRole("User") || User.IsInRole("Admin")))
+                            {
+                                <a asp-controller="Blog" asp-action="Create" class="btn btn-outline-primary ms-2">
+                                    <i class="bi bi-plus-circle me-2"></i>ახალი პოსტი
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Error State -->
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-5">
+                        <i class="bi bi-exclamation-triangle display-1 text-warning mb-3"></i>
+                        <h3 class="card-title text-muted mb-3">პოსტი ვერ მოიძებნა</h3>
+                        @if (!string.IsNullOrWhiteSpace(ViewBag.ErrorMessage))
+                        {
+                            <p class="text-muted mb-4">@ViewBag.ErrorMessage</p>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-4">მოთხოვნილი პოსტი არ არსებობს ან წაშლილია.</p>
+                        }
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-arrow-left me-2"></i>მთავარ გვერდზე დაბრუნება
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Add smooth scroll behavior for better UX
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        // Add copy link functionality
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                // Show success message (you can implement toast notifications later)
+                console.log('Link copied to clipboard!');
+            });
+        }
+    </script>
+}

@@ -1,21 +1,82 @@
 using System.Diagnostics;
 using BlogMvc.Models;
+using BlogMvc.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 
 namespace BlogMvc.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly IBlogService _blogService;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(
+            IBlogService blogService,
+            UserManager<IdentityUser> userManager)
         {
-            _logger = logger;
+            _blogService = blogService;
+            _userManager = userManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(string? searchTerm, int page = 1)
         {
-            return View();
+            const int pageSize = 6; // Number of posts per page
+
+            var userId = User.Identity?.IsAuthenticated == true
+                ? _userManager.GetUserId(User)
+                : null;
+
+            var result = !string.IsNullOrWhiteSpace(searchTerm)
+                ? await _blogService.SearchPostsByTitleAsync(searchTerm)
+                : await _blogService.GetAllPostsWithPermissionsAsync(userId);
+
+            if (!result.IsSuccess)
+            {
+                ViewBag.ErrorMessage = result.Error?.Message ?? "An error occurred while loading posts.";
+                return View(new List<BlogMvc.Models.ViewModels.BlogPostViewModel>());
+            }
+
+            var posts = result.Value?.ToList() ?? new List<BlogMvc.Models.ViewModels.BlogPostViewModel>();
+
+            // Calculate pagination
+            var totalPosts = posts.Count;
+            var totalPages = (int)Math.Ceiling((double)totalPosts / pageSize);
+            var pagedPosts = posts
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Pass pagination data to view
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.HasPreviousPage = page > 1;
+            ViewBag.HasNextPage = page < totalPages;
+
+            return View(pagedPosts);
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var userId = User.Identity?.IsAuthenticated == true
+                ? _userManager.GetUserId(User)
+                : null;
+
+            var result = await _blogService.GetPostWithPermissionsAsync(id, userId);
+
+            if (!result.IsSuccess)
+            {
+                if (result.Error?.Code == "NOT_FOUND")
+                {
+                    return NotFound();
+                }
+
+                ViewBag.ErrorMessage = result.Error?.Message ?? "An error occurred while loading the post.";
+                return View();
+            }
+
+            return View(result.Value);
         }
 
         public IActionResult Privacy()

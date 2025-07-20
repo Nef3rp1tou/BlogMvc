@@ -1,8 +1,199 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<BlogMvc.Models.ViewModels.BlogPostViewModel>
+@{
+    ViewData["Title"] = "მთავარი გვერდი";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Hero Section -->
+<section class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="bi bi-journal-bookmark me-3"></i>BlogMvc
+                </h1>
+                <p class="lead mb-4">
+                    გაზიარეთ თქვენი იდეები, წაიკითხეთ საინტერესო სტატიები და იყავით ჩვენი თემის ნაწილი.
+                </p>
+                @if (!User.Identity!.IsAuthenticated)
+                {
+                    <div class="d-flex gap-3">
+                        <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-light btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>რეგისტრაცია
+                        </a>
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>შესვლა
+                        </a>
+                    </div>
+                }
+                else if (User.IsInRole("User") || User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Blog" asp-action="Create" class="btn btn-light btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>ახალი პოსტის დამატება
+                    </a>
+                }
+            </div>
+            <div class="col-lg-4 text-center">
+                <i class="bi bi-people-fill display-1 opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container my-5">
+    <!-- Search Results Info -->
+    @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm))
+    {
+        <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-search me-2"></i>
+            <div>
+                ძიების შედეგები "<strong>@ViewBag.SearchTerm</strong>"-სთვის 
+                (@Model.Count() შედეგი)
+                <a asp-controller="Home" asp-action="Index" class="ms-2 text-decoration-none">
+                    <i class="bi bi-x-circle"></i> გასუფთავება
+                </a>
+            </div>
+        </div>
+    }
+
+    <!-- Error Message -->
+    @if (!string.IsNullOrWhiteSpace(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <div>@ViewBag.ErrorMessage</div>
+        </div>
+    }
+
+    <!-- Blog Posts Grid -->
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var post in Model)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 shadow-sm border-0 hover-shadow">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-person me-1"></i>@post.Author
+                                </span>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    @post.PublishedDate.ToString("dd MMM yyyy")
+                                </small>
+                            </div>
+                            
+                            <h5 class="card-title fw-bold mb-3">
+                                <a asp-controller="Home" asp-action="Details" asp-route-id="@post.Id" 
+                                   class="text-decoration-none text-dark hover-primary">
+                                    @post.Title
+                                </a>
+                            </h5>
+                            
+                            <p class="card-text text-muted flex-grow-1">
+                                @(post.Content.Length > 150 ? post.Content.Substring(0, 150) + "..." : post.Content)
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <a asp-controller="Home" asp-action="Details" asp-route-id="@post.Id" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>წაკითხვა
+                                </a>
+                                
+                                @if (post.CanEdit || post.CanDelete)
+                                {
+                                    <div class="btn-group" role="group">
+                                        @if (post.CanEdit)
+                                        {
+                                            <a asp-controller="Blog" asp-action="Edit" asp-route-id="@post.Id" 
+                                               class="btn btn-outline-secondary btn-sm" title="რედაქტირება">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        }
+                                        @if (post.CanDelete)
+                                        {
+                                            <a asp-controller="Blog" asp-action="Delete" asp-route-id="@post.Id" 
+                                               class="btn btn-outline-danger btn-sm" title="წაშლა">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    @if (ViewBag.HasPreviousPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-controller="Home" asp-action="Index" 
+                               asp-route-page="@(ViewBag.CurrentPage - 1)" 
+                               asp-route-searchTerm="@ViewBag.SearchTerm">
+                                <i class="bi bi-chevron-left"></i> წინა
+                            </a>
+                        </li>
+                    }
+
+                    @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-controller="Home" asp-action="Index" 
+                               asp-route-page="@i" asp-route-searchTerm="@ViewBag.SearchTerm">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    @if (ViewBag.HasNextPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-controller="Home" asp-action="Index" 
+                               asp-route-page="@(ViewBag.CurrentPage + 1)" 
+                               asp-route-searchTerm="@ViewBag.SearchTerm">
+                                შემდეგი <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x display-1 text-muted mb-3"></i>
+            <h3 class="text-muted mb-3">პოსტები არ არის ნაპოვნი</h3>
+            @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm))
+            {
+                <p class="text-muted mb-4">სცადეთ სხვა საძიებო ტერმინი</p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-2"></i>ყველა პოსტის ნახვა
+                </a>
+            }
+            else if (User.Identity!.IsAuthenticated && (User.IsInRole("User") || User.IsInRole("Admin")))
+            {
+                <p class="text-muted mb-4">იყავით პირველი, ვინც დაწერს პოსტს!</p>
+                <a asp-controller="Blog" asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle me-2"></i>პირველი პოსტის დამატება
+                </a>
+            }
+            else
+            {
+                <p class="text-muted mb-4">რეგისტრაცია გაიარეთ პოსტების დასამატებლად</p>
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-lg">
+                    <i class="bi bi-person-plus me-2"></i>რეგისტრაცია
+                </a>
+            }
+        </div>
+    }
 </div>

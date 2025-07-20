@@ -38,16 +38,13 @@ var jwtKey = builder.Configuration["Jwt:Key"] ?? "YourSuperSecretKeyForDevelopme
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "BlogMvc";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BlogMvcUsers";
 
+// IMPORTANT: Configure authentication to use Identity by default for UI
 builder.Services.AddAuthentication(options =>
 {
-    // Use JWT for API endpoints
-    options.DefaultScheme = "JWT_OR_COOKIE";
-    options.DefaultChallengeScheme = "JWT_OR_COOKIE";
-})
-.AddCookie(options =>
-{
-    options.LoginPath = "/Identity/Account/Login";
-    options.LogoutPath = "/Identity/Account/Logout";
+    // Set default to Identity for UI pages
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
 })
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
@@ -61,17 +58,16 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
-})
-.AddPolicyScheme("JWT_OR_COOKIE", "JWT_OR_COOKIE", options =>
-{
-    options.ForwardDefaultSelector = context =>
-    {
-        string authorization = context.Request.Headers["Authorization"];
-        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
-            return JwtBearerDefaults.AuthenticationScheme;
+});
 
-        return IdentityConstants.ApplicationScheme;
-    };
+// Configure authorization to accept both schemes
+builder.Services.AddAuthorization(options =>
+{
+    // Create a policy that accepts both JWT and Cookie authentication
+    options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, JwtBearerDefaults.AuthenticationScheme)
+        .Build();
 });
 
 // Add application services (repositories, services, validators)
