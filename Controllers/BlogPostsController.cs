@@ -110,7 +110,7 @@ public class BlogPostController : BaseController
         }
 
         // Verify the user exists and has proper role
-        var user = await _userManager.FindByIdAsync(userId); b
+        var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
             return Unauthorized();
