@@ -1,6 +1,7 @@
 ﻿using BlogMvc.Data;
 using BlogMvc.Data.Seed;
 using BlogMvc.Extensions;
+using BlogMvc.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -123,8 +124,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        var seedLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        seedLogger.LogError(ex, "An error occurred while seeding the database.");
     }
 }
 
@@ -146,6 +147,9 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Add simple request logging - place it after static files
+app.UseSimpleRequestLogging();
 
 app.UseRouting();
 

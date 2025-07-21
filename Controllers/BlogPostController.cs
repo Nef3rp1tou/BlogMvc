@@ -132,9 +132,10 @@ public class BlogPostController : Controller
 
     [HttpGet]
     [Authorize(Roles = "User,Admin")]
+    // GET: Blog/Edit/5
     public async Task<IActionResult> Edit(int id)
     {
-        var userId = GetCurrentUserId();
+        var userId = _userManager.GetUserId(User);
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized();
@@ -143,20 +144,34 @@ public class BlogPostController : Controller
         var result = await _blogService.GetPostByIdAsync(id);
         if (!result.IsSuccess)
         {
-            TempData["ErrorMessage"] = result.Error?.Message ?? "Post not found.";
-            return RedirectToAction("Index");
+            if (result.Error?.Code == "NOT_FOUND")
+            {
+                return NotFound();
+            }
+
+            TempData["ErrorMessage"] = result.Error?.Message ?? "შეცდომა პოსტის ჩატვირთვისას";
+            return RedirectToAction("Index", "Home");
         }
 
         var post = result.Value!;
-        var editModel = new EditPostViewModel
+
+        // Check if user can edit this post
+        var canEditResult = await _blogService.CanUserEditPostAsync(id, userId);
+        if (!canEditResult.IsSuccess || !canEditResult.Value)
+        {
+            return Forbid();
+        }
+
+        var model = new EditPostViewModel
         {
             Id = post.Id,
             Title = post.Title,
             Content = post.Content,
-            Author = post.Author
+            Author = post.Author,
+            PublishedDate = post.PublishedDate,
         };
 
-        return View(editModel);
+        return View(model);
     }
 
     [HttpPost]
@@ -194,25 +209,27 @@ public class BlogPostController : Controller
     }
 
     [HttpPost]
-[ValidateAntiForgeryToken]
-[Authorize(Roles = "User,Admin")]
-public async Task<IActionResult> Delete(int id)
-{
-    var userId = GetCurrentUserId();
-    if (string.IsNullOrEmpty(userId))
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "User,Admin")]
+    public async Task<IActionResult> Delete(int id)
     {
-        return Json(new { success = false, message = "Unauthorized request." });
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _blogService.DeletePostAsync(id, userId);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.Error?.Message ?? "Failed to delete post.";
+            return RedirectToAction("Index", "Home");
+        }
+
+        TempData["SuccessMessage"] = "Post successfully deleted!";
+        return RedirectToAction("Index", "Home");
     }
-
-    var result = await _blogService.DeletePostAsync(id, userId);
-
-    if (!result.IsSuccess)
-    {
-        return Json(new { success = false, message = result.Error?.Message ?? "Failed to delete post." });
-    }
-
-    return Json(new { success = true, message = "Post successfully deleted!" });
-}
 
     #endregion
 

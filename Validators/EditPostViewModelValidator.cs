@@ -24,9 +24,6 @@ public class EditPostViewModelValidator : AbstractValidator<EditPostViewModel>
             .NotEmpty().WithMessage("ავტორი სავალდებულოა")
             .Length(1, 100).WithMessage("ავტორის სახელი უნდა იყოს 1-100 სიმბოლოს შორის")
             .Must(BeValidAuthor).WithMessage("ავტორის სახელი არ უნდა შეიცავდეს მხოლოდ ცარიელ სიმბოლოებს");
-
-        RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("მომხმარებელი სავალდებულოა");
     }
 
     private bool BeValidTitle(string title)

@@ -82,7 +82,20 @@ public class BlogRepository(ApplicationDbContext context) : IBlogRepository
             return Result<BlogPost>.Failure(Error.Validation("Title is required"));
         }
 
-        _context.BlogPosts.Update(blogPost);
+        // Find the existing entity that's being tracked
+        var existingEntity = await _context.BlogPosts
+            .FirstOrDefaultAsync(p => p.Id == blogPost.Id);
+
+        if (existingEntity == null)
+        {
+            return Result<BlogPost>.Failure(Error.NotFound("BlogPost", blogPost.Id));
+        }
+
+        // Update only the properties that should be modified
+        existingEntity.Title = blogPost.Title;
+        existingEntity.Content = blogPost.Content;
+        existingEntity.Author = blogPost.Author;
+        // Don't update PublishedDate, UserId, or Id
 
         var saveResult = await SaveChangesAsync();
         if (!saveResult.IsSuccess)
@@ -90,12 +103,12 @@ public class BlogRepository(ApplicationDbContext context) : IBlogRepository
             return Result<BlogPost>.Failure(saveResult.Error!);
         }
 
-        // Reload with User navigation property
-        await _context.Entry(blogPost)
+        // Load the User navigation property if needed
+        await _context.Entry(existingEntity)
             .Reference(p => p.User)
             .LoadAsync();
 
-        return Result<BlogPost>.Success(blogPost);
+        return Result<BlogPost>.Success(existingEntity);
     }
 
     public async Task<Result> DeleteAsync(int id)
@@ -135,7 +148,6 @@ public class BlogRepository(ApplicationDbContext context) : IBlogRepository
 
     #endregion
 
-
     private async Task<Result> SaveChangesAsync()
     {
         var rowsAffected = await _context.SaveChangesAsync();
@@ -147,7 +159,4 @@ public class BlogRepository(ApplicationDbContext context) : IBlogRepository
 
         return Result.Failure(Error.InternalServerError("No changes were saved to the database"));
     }
-
-
 }
-
