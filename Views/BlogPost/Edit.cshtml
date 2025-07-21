@@ -1,0 +1,119 @@
+﻿@model BlogMvc.Models.ViewModels.EditPostViewModel
+@{
+    ViewData["Title"] = "პოსტის რედაქტირება";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="mb-4">
+                <h1 class="display-5 fw-bold text-primary mb-3">
+                    <i class="bi bi-pencil-square me-2"></i>პოსტის რედაქტირება
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="BlogPost" asp-action="Index" class="text-decoration-none">
+                                <i class="bi bi-house me-1"></i>მთავარი
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a asp-controller="BlogPost" asp-action="Details" asp-route-id="@Model.Id" class="text-decoration-none">
+                                პოსტის დეტალები
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">რედაქტირება</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Edit Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-controller="BlogPost" asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Hidden fields -->
+                        <input asp-for="Id" type="hidden" />
+                        <input asp-for="PublishedDate" type="hidden" />
+                        <input asp-for="UserId" type="hidden" />
+
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label asp-for="Title" class="form-label fw-bold">
+                                <i class="bi bi-type me-1"></i>სათაური
+                            </label>
+                            <input asp-for="Title" class="form-control form-control-lg"
+                                   placeholder="შეიყვანეთ პოსტის სათაური..." />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Author -->
+                        <div class="mb-4">
+                            <label asp-for="Author" class="form-label fw-bold">
+                                <i class="bi bi-person me-1"></i>ავტორი
+                            </label>
+                            <input asp-for="Author" class="form-control"
+                                   placeholder="თქვენი სახელი..." />
+                            <span asp-validation-for="Author" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="mb-4">
+                            <label asp-for="Content" class="form-label fw-bold">
+                                <i class="bi bi-text-paragraph me-1"></i>შინაარსი
+                            </label>
+                            <textarea asp-for="Content" class="form-control" rows="10"
+                                      placeholder="დაწერეთ თქვენი პოსტის შინაარსი..."></textarea>
+                            <span asp-validation-for="Content" class="text-danger small"></span>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>
+                                მინიმუმ 10, მაქსიმუმ 5000 სიმბოლო
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a asp-controller="BlogPost" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>გაუქმება
+                            </a>
+                            <div class="d-flex gap-2">
+                                <a asp-controller="BlogPost" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
+                                    <i class="bi bi-eye me-2"></i>პრევიუ
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg" onclick="console.log('Form submitting...');">
+                                    <i class="bi bi-check-circle me-2"></i>განახლება
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips Section -->
+            <div class="card border-0 shadow-sm mt-4 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightbulb me-2 text-warning"></i>რჩევები რედაქტირებისთვის
+                    </h5>
+                    <ul class="mb-0">
+                        <li>გადაამოწმეთ სათაური და შინაარსი ცვლილებების შემდეგ</li>
+                        <li>დარწმუნდით, რომ ტექსტი კარგად არის დაყოფილი აბზაცებად</li>
+                        <li>გადაამოწმეთ გრამატიკა და მართლწერა</li>
+                        <li>გამოიყენეთ პრევიუ ღილაკი ცვლილებების გასაკონტროლებლად</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Version Info (Optional) -->
+            <div class="mt-3 text-center">
+                <small class="text-muted">
+                    <i class="bi bi-clock-history me-1"></i>
+                    ბოლო განახლება: @DateTime.Now.ToString("dd MMM yyyy, HH:mm")
+                </small>
+            </div>
+        </div>
+    </div>
+</div>

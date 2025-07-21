@@ -7,17 +7,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BlogMvc.Controllers;
+namespace BlogMvc.Controllers.Api;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-public class BlogPostController : BaseController
+public class BlogPostApiController : BaseController
 {
     private readonly IBlogService _blogService;
     private readonly UserManager<IdentityUser> _userManager;
 
-    public BlogPostController(
+    public BlogPostApiController(
         IBlogService blogService,
         UserManager<IdentityUser> userManager)
     {

@@ -57,32 +57,6 @@ namespace BlogMvc.Controllers
             return View(pagedPosts);
         }
 
-        public async Task<IActionResult> Details(int id)
-        {
-            var userId = User.Identity?.IsAuthenticated == true
-                ? _userManager.GetUserId(User)
-                : null;
-
-            var result = await _blogService.GetPostWithPermissionsAsync(id, userId);
-
-            if (!result.IsSuccess)
-            {
-                if (result.Error?.Code == "NOT_FOUND")
-                {
-                    return NotFound();
-                }
-
-                ViewBag.ErrorMessage = result.Error?.Message ?? "An error occurred while loading the post.";
-                return View();
-            }
-
-            return View(result.Value);
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

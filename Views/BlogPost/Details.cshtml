@@ -39,14 +39,14 @@
                                     <div class="btn-group" role="group">
                                         @if (Model.CanEdit)
                                         {
-                                            <a asp-controller="Blog" asp-action="Edit" asp-route-id="@Model.Id"
+                                            <a asp-controller="BlogPost" asp-action="UpdatePost" asp-route-id="@Model.Id"
                                                class="btn btn-outline-primary btn-sm">
                                                 <i class="bi bi-pencil me-1"></i>რედაქტირება
                                             </a>
                                         }
                                         @if (Model.CanDelete)
                                         {
-                                            <a asp-controller="Blog" asp-action="Delete" asp-route-id="@Model.Id"
+                                            <a asp-controller="BlogPost" asp-action="DeletePost" asp-route-id="@Model.Id"
                                                class="btn btn-outline-danger btn-sm">
                                                 <i class="bi bi-trash me-1"></i>წაშლა
                                             </a>
@@ -92,7 +92,7 @@
                             </a>
                             @if (User.Identity!.IsAuthenticated && (User.IsInRole("User") || User.IsInRole("Admin")))
                             {
-                                <a asp-controller="Blog" asp-action="Create" class="btn btn-outline-primary ms-2">
+                                <a asp-controller="BlogPost" asp-action="CreatePost" class="btn btn-outline-primary ms-2">
                                     <i class="bi bi-plus-circle me-2"></i>ახალი პოსტი
                                 </a>
                             }
